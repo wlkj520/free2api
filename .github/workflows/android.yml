@@ -14,6 +14,8 @@ jobs:
           gradle-version: '8.10.2'
       - name: Unzip project
         run: unzip -o free2api_gateway.zip
+      - name: Patch readAllBytes
+        run: sed -i '/readAllBytes/d' app/src/main/java/dev/free2api/service/GatewayService.java
       - name: Build APK
         run: |
           gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
@@ -23,10 +25,10 @@ jobs:
         run: |
           {
             echo '```'
-            grep -nE "error:|FAILURE|Caused by|\.java:[0-9]+" build.log | tail -60
+            grep -nE "error:|What went wrong|Caused by|FAILURE" build.log | head -80
             echo '```'
-            echo '### log tail'
+            echo '### user code refs'
             echo '```'
-            tail -30 build.log
+            grep -nE "\.java:[0-9]+" build.log | grep -v "org\.gradle" | head -30
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
